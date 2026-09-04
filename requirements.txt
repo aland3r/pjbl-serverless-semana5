@@ -1,0 +1,2 @@
+azure-functions
+pymongo[srv]==4.9.1

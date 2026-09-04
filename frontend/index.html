@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PJBL - Frontend + Serverless (Semana 5)</title>
+  <style>
+    :root {
+      --bg: #0f172a; --card: #1e293b; --line: #334155; --text: #e2e8f0;
+      --muted: #94a3b8; --accent: #6366f1; --accent2: #22c55e;
+      --danger: #ef4444; --warn: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.5;
+    }
+    header {
+      padding: 20px 24px; border-bottom: 1px solid var(--line);
+      background: linear-gradient(90deg, #1e1b4b, #0f172a);
+    }
+    header h1 { margin: 0; font-size: 20px; }
+    header p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    main { max-width: 980px; margin: 0 auto; padding: 20px; display: grid; gap: 16px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+    .card h2 { margin: 0 0 12px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+    .badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #312e81; color: #c7d2fe; font-weight: 600; }
+    label { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 4px; }
+    input, textarea {
+      width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--line);
+      background: #0b1220; color: var(--text); font-size: 14px; font-family: inherit;
+    }
+    input:focus, textarea:focus { outline: 2px solid var(--accent); border-color: transparent; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .row > div { flex: 1; min-width: 160px; }
+    button {
+      cursor: pointer; border: none; border-radius: 8px; padding: 9px 16px;
+      font-size: 14px; font-weight: 600; color: #fff; background: var(--accent); margin-top: 12px;
+    }
+    button:hover { filter: brightness(1.1); }
+    button.green { background: var(--accent2); }
+    button.ghost { background: transparent; border: 1px solid var(--line); color: var(--text); }
+    button.small { padding: 5px 10px; font-size: 12px; margin: 0; }
+    button.del { background: var(--danger); }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-weight: 600; }
+    td.id { color: var(--muted); font-family: monospace; font-size: 11px; }
+    .actions { display: flex; gap: 6px; }
+    #log {
+      background: #020617; border: 1px solid var(--line); border-radius: 8px; padding: 12px;
+      font-family: monospace; font-size: 12px; white-space: pre-wrap; max-height: 220px;
+      overflow: auto; color: #a5f3fc;
+    }
+    .cfg { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+    .cfg > div { flex: 1; min-width: 260px; }
+    .ok { color: var(--accent2); } .err { color: var(--danger); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>PJBL · Frontend + Serverless</h1>
+    <p>Arquitetura e Soluções Cloud · Semana 5 · 4 Azure Functions (CRUD) + MongoDB Atlas</p>
+  </header>
+
+  <main>
+    <!-- Configuração da URL da API -->
+    <section class="card">
+      <h2>⚙️ Configuração da API</h2>
+      <div class="cfg">
+        <div>
+          <label>URL base das Azure Functions</label>
+          <input id="apiBase" placeholder="http://localhost:7071/api" />
+        </div>
+        <button class="ghost" onclick="salvarBase()">Salvar URL</button>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin:8px 0 0">
+        Local: <code>http://localhost:7071/api</code> ·
+        Deploy: <code>https://SEU-APP.azurewebsites.net/api</code>
+      </p>
+    </section>
+
+    <!-- INSERIR -->
+    <section class="card">
+      <h2><span class="badge">Function 1</span> Inserir</h2>
+      <div class="row">
+        <div><label>Nome</label><input id="insNome" placeholder="Ex.: Produto A" /></div>
+        <div><label>Descrição</label><input id="insDesc" placeholder="Ex.: item de teste" /></div>
+      </div>
+      <button class="green" onclick="inserir()">➕ Inserir</button>
+    </section>
+
+    <!-- PESQUISAR -->
+    <section class="card">
+      <h2><span class="badge">Function 2</span> Pesquisar</h2>
+      <div class="row">
+        <div><label>Filtrar por nome (opcional)</label><input id="busNome" placeholder="deixe vazio p/ listar todos" /></div>
+      </div>
+      <div class="row">
+        <button onclick="pesquisar()">🔎 Pesquisar</button>
+        <button class="ghost" onclick="document.getElementById('busNome').value='';pesquisar()">Listar todos</button>
+      </div>
+      <table>
+        <thead><tr><th>Nome</th><th>Descrição</th><th>ID</th><th>Ações</th></tr></thead>
+        <tbody id="tabela"><tr><td colspan="4" style="color:var(--muted)">Nenhum item carregado.</td></tr></tbody>
+      </table>
+    </section>
+
+    <!-- ALTERAR -->
+    <section class="card">
+      <h2><span class="badge">Function 3</span> Alterar</h2>
+      <label>ID do item (clique em "Editar" na tabela para preencher)</label>
+      <input id="altId" placeholder="_id do MongoDB" />
+      <div class="row">
+        <div><label>Novo nome</label><input id="altNome" /></div>
+        <div><label>Nova descrição</label><input id="altDesc" /></div>
+      </div>
+      <button class="green" onclick="alterar()">💾 Salvar alteração</button>
+    </section>
+
+    <!-- LOG -->
+    <section class="card">
+      <h2>🧾 Log de respostas das Functions</h2>
+      <div id="log">Aguardando ações…</div>
+    </section>
+  </main>
+
+  <script>
+    // ---- Configuração da URL base ----
+    const KEY = "pjbl_api_base";
+    const baseInput = document.getElementById("apiBase");
+    baseInput.value = localStorage.getItem(KEY) || "https://alander1-cbewavcrdqfab2ga.brazilsouth-01.azurewebsites.net/api";
+    function base() { return baseInput.value.replace(/\/+$/, ""); }
+    function salvarBase() { localStorage.setItem(KEY, base()); log("URL base salva: " + base(), "ok"); }
+
+    // ---- Log helper ----
+    function log(msg, cls) {
+      const el = document.getElementById("log");
+      const time = new Date().toLocaleTimeString();
+      const line = document.createElement("div");
+      if (cls) line.className = cls;
+      line.textContent = `[${time}] ${msg}`;
+      el.prepend(line);
+    }
+
+    async function chamar(metodo, rota, corpo) {
+      const url = base() + rota;
+      log(`${metodo} ${url}` + (corpo ? "  " + JSON.stringify(corpo) : ""));
+      try {
+        const opt = { method: metodo, headers: { "Content-Type": "application/json" } };
+        if (corpo) opt.body = JSON.stringify(corpo);
+        const resp = await fetch(url, opt);
+        const dados = await resp.json().catch(() => ({}));
+        log(`↳ ${resp.status} ` + JSON.stringify(dados), resp.ok ? "ok" : "err");
+        return { ok: resp.ok, dados };
+      } catch (e) {
+        log("↳ ERRO de rede: " + e.message + "  (a API está no ar? CORS liberado?)", "err");
+        return { ok: false, dados: null };
+      }
+    }
+
+    // ---- Function 1: Inserir ----
+    async function inserir() {
+      const nome = document.getElementById("insNome").value.trim();
+      const descricao = document.getElementById("insDesc").value.trim();
+      if (!nome) return log("Informe um nome para inserir.", "err");
+      const r = await chamar("POST", "/insert", { nome, descricao });
+      if (r.ok) { document.getElementById("insNome").value = ""; document.getElementById("insDesc").value = ""; pesquisar(); }
+    }
+
+    // ---- Function 2: Pesquisar ----
+    async function pesquisar() {
+      const nome = document.getElementById("busNome").value.trim();
+      const rota = "/pesquisar" + (nome ? "?nome=" + encodeURIComponent(nome) : "");
+      const r = await chamar("GET", rota);
+      const tbody = document.getElementById("tabela");
+      tbody.innerHTML = "";
+      const itens = (r.dados && r.dados.itens) || [];
+      if (!itens.length) { tbody.innerHTML = '<tr><td colspan="4" style="color:var(--muted)">Nenhum item encontrado.</td></tr>'; return; }
+      for (const it of itens) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${esc(it.nome)}</td>
+          <td>${esc(it.descricao || "")}</td>
+          <td class="id">${it._id}</td>
+          <td class="actions">
+            <button class="small ghost" onclick="editar('${it._id}', '${esc(it.nome)}', '${esc(it.descricao || "")}')">Editar</button>
+            <button class="small del" onclick="excluir('${it._id}')">Excluir</button>
+          </td>`;
+        tbody.appendChild(tr);
+      }
+    }
+
+    // ---- Function 3: Alterar ----
+    function editar(id, nome, desc) {
+      document.getElementById("altId").value = id;
+      document.getElementById("altNome").value = nome;
+      document.getElementById("altDesc").value = desc;
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+      log("Item carregado para edição: " + id);
+    }
+    async function alterar() {
+      const id = document.getElementById("altId").value.trim();
+      const nome = document.getElementById("altNome").value.trim();
+      const descricao = document.getElementById("altDesc").value.trim();
+      if (!id) return log("Informe o ID (use 'Editar' na tabela).", "err");
+      const r = await chamar("PUT", "/alterar", { id, nome, descricao });
+      if (r.ok) { document.getElementById("altId").value = ""; pesquisar(); }
+    }
+
+    // ---- Function 4: Excluir ----
+    async function excluir(id) {
+      if (!confirm("Excluir este item?")) return;
+      const r = await chamar("DELETE", "/excluir?id=" + encodeURIComponent(id));
+      if (r.ok) pesquisar();
+    }
+
+    function esc(s) { return String(s).replace(/[<>&'"]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&#39;", '"': "&quot;" }[c])); }
+
+    // carrega a lista ao abrir
+    pesquisar();
+  </script>
+</body>
+</html>

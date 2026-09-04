@@ -1,0 +1,35 @@
+# PJBL - Semana 5: Frontend + Serverless
+
+Arquitetura e Soluções Cloud - Engenharia de Software (Noite)
+
+## Alunos
+- Alander Menezes Arantes de Ávila
+- Bernardo Creplive Vieira
+- Emanuelle Skolut Jose
+- Murilo Regnier Stange
+
+## Solução
+4 Azure Functions (CRUD) em Python + MongoDB Atlas + frontend web.
+
+- **Function App:** `alander1` (Azure, Brazil South)
+- **URL base:** https://alander1-cbewavcrdqfab2ga.brazilsouth-01.azurewebsites.net/api
+- **Banco:** MongoDB Atlas — database `pjbl`, collection `itens`
+
+### Endpoints
+| Função | Método | Rota |
+|---|---|---|
+| inserir | POST | `/api/insert` |
+| pesquisar | GET | `/api/pesquisar` |
+| alterar | PUT | `/api/alterar` |
+| excluir | DELETE | `/api/excluir` |
+
+## Estrutura
+- `function_app.py` — as 4 Azure Functions (modelo Python v2)
+- `requirements.txt` — dependências (azure-functions, pymongo)
+- `host.json` — configuração do host
+- `frontend/index.html` — tela que executa as 4 functions
+- `ENTREGA-Semana5.pdf` — documento de entrega com as evidências
+
+## Configuração
+As variáveis `MONGO_URI`, `MONGO_DB` e `MONGO_COLLECTION` ficam nas Application
+Settings do Function App (não versionadas por segurança).
