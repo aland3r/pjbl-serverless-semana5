@@ -33,3 +33,15 @@ Arquitetura e Soluções Cloud - Engenharia de Software (Noite)
 ## Configuração
 As variáveis `MONGO_URI`, `MONGO_DB` e `MONGO_COLLECTION` ficam nas Application
 Settings do Function App (não versionadas por segurança).
+
+## Frontend publicado (Azure Static Web Apps)
+- **URL do site:** _(preencher após publicar no Azure Static Web Apps)_
+
+O frontend (`frontend/index.html`) consome as Azure Functions via `fetch`. O
+endpoint GET utilizado é `GET /api/pesquisar`, que retorna dados reais do
+MongoDB Atlas. Não foi utilizado Apidog para mock (os dados vêm das próprias
+Azure Functions).
+
+## Grupo e IAG
+- Integrantes do grupo: ver [GRUPO.md](GRUPO.md).
+- Prompt de IA generativa (IAG) usado para gerar o frontend: ver [Prompt.md](Prompt.md).
